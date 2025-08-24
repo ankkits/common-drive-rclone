@@ -5,14 +5,19 @@ set -e
 mkdir -p bin
 
 # Download rclone binary for Linux
-if [ ! -f bin/rclone ]; then
-  echo "[init] downloading rclone..."
-  curl -L https://downloads.rclone.org/rclone-current-linux-amd64.zip -o /tmp/rclone.zip
-  unzip -j /tmp/rclone.zip "rclone-*-linux-amd64/rclone" -d bin
-  chmod +x bin/rclone
-else
-  echo "[init] using cached rclone binary"
+curl -L https://downloads.rclone.org/rclone-current-linux-amd64.zip -o /tmp/rclone.zip
+
+# Extract just the rclone binary
+unzip -j /tmp/rclone.zip "rclone-*-linux-amd64/rclone" -d bin
+
+# Make it executable
+chmod +x bin/rclone
+
+# Write the rclone.conf from env var to file (if provided)
+if [ -n "$RCLONE_DEST" ]; then
+  mkdir -p ~/.config/rclone
+  echo "$RCLONE_DEST" > ~/.config/rclone/rclone.conf
 fi
 
-# Start Python app (both WebUI + Bot)
-exec python app.py
+# Start the python app
+python app.py --mode webui
