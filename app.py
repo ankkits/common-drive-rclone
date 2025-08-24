@@ -1,70 +1,62 @@
 import os
 import subprocess
 import asyncio
-from telegram import Update
-from telegram.ext import Application, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
-# --- Environment Variables ---
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-ALLOWED_CHAT_ID = os.environ.get("TELEGRAM_ALLOWED_CHAT_ID")
-RCLONE_RC_USER = os.environ.get("RCLONE_RC_USER", "admin")
-RCLONE_RC_PASS = os.environ.get("RCLONE_RC_PASS", "changeme")
-RCLONE_DEST = os.environ.get("RCLONE_DEST", "protondrive1:/telegram")
-PORT = os.environ.get("PORT", "8080")
+# --- Environment variables ---
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+TELEGRAM_GROUP_ID = os.environ.get("TELEGRAM_GROUP_ID")  # e.g. "-1001234567890"
 
-# --- Start Rclone WebUI ---
+RCLONE_USER = os.environ.get("RCLONE_USER", "admin")
+RCLONE_PASS = os.environ.get("RCLONE_PASS", "changeme")
+RCLONE_PORT = int(os.environ.get("RCLONE_PORT", "10000"))  # WebUI port
+APP_PORT = int(os.environ.get("PORT", "8080"))  # Render expects something on PORT
+
+
+# --- Start rclone WebUI ---
 def start_rclone():
+    print(f"✅ Starting rclone WebUI on port {RCLONE_PORT} ...")
     cmd = [
-        "./bin/rclone", "rcd",
+        "./bin/rclone",
+        "rcd",
         "--rc-web-gui",
-        f"--rc-user={RCLONE_RC_USER}",
-        f"--rc-pass={RCLONE_RC_PASS}",
-        "--rc-serve",
-        f"--rc-addr=0.0.0.0:{PORT}"
+        "--rc-addr", f":{RCLONE_PORT}",
+        "--rc-user", RCLONE_USER,
+        "--rc-pass", RCLONE_PASS,
     ]
-    return subprocess.Popen(cmd)
+    subprocess.Popen(cmd)  # background process
 
-# --- Telegram Bot Handlers ---
-async def save_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if str(update.effective_chat.id) != str(ALLOWED_CHAT_ID):
-        return
 
-    file = None
-    if update.message.document:
-        file = update.message.document
-    elif update.message.photo:
-        file = update.message.photo[-1]
-    elif update.message.video:
-        file = update.message.video
+# --- Telegram bot handlers ---
+async def start(update, context):
+    await update.message.reply_text("Hello! Bot is up and running 🚀")
 
-    if not file:
-        return
+async def echo(update, context):
+    await update.message.reply_text(update.message.text)
 
-    file_path = f"/tmp/{file.file_unique_id}"
-    await file.get_file().download_to_drive(file_path)
-
-    # Upload to rclone remote
-    cmd = ["./bin/rclone", "move", file_path, RCLONE_DEST]
-    subprocess.run(cmd)
-
-    await update.message.reply_text("✅ File uploaded to cloud storage")
 
 async def run_bot():
-    if not TELEGRAM_TOKEN:
-        print("No TELEGRAM_TOKEN provided, bot disabled")
+    if not TELEGRAM_BOT_TOKEN:
+        print("❌ TELEGRAM_BOT_TOKEN is missing in environment variables!")
         return
-    app = Application.builder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(MessageHandler(filters.ALL, save_file))
+
+    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+
+    print("🤖 Telegram bot started...")
     await app.run_polling()
 
-# --- Main ---
-if __name__ == "__main__":
-    # Start Rclone WebUI
-    rclone_proc = start_rclone()
-    print(f"✅ Rclone WebUI running on port {PORT}")
 
-    # Start Telegram Bot
+# --- Entry point ---
+if __name__ == "__main__":
+    start_rclone()
+
+    loop = asyncio.get_event_loop()
     try:
-        asyncio.run(run_bot())
-    finally:
-        rclone_proc.terminate()
+        loop.run_until_complete(run_bot())
+    except RuntimeError:
+        # fallback if loop already running
+        loop.create_task(run_bot())
+        loop.run_forever()

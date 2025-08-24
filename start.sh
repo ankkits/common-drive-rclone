@@ -13,11 +13,5 @@ unzip -j /tmp/rclone.zip "rclone-*-linux-amd64/rclone" -d bin
 # Make it executable
 chmod +x bin/rclone
 
-# Write the rclone.conf from env var to file (if provided)
-if [ -n "$RCLONE_DEST" ]; then
-  mkdir -p ~/.config/rclone
-  echo "$RCLONE_DEST" > ~/.config/rclone/rclone.conf
-fi
-
-# Start the python app
-python app.py --mode webui
+# Start the Python app
+python app.py
