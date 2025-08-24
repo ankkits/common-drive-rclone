@@ -4,6 +4,9 @@ set -e
 # Ensure bin exists
 mkdir -p bin
 
+mkdir -p ~/.config/rclone
+echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+
 # Download rclone binary for Linux
 curl -L https://downloads.rclone.org/rclone-current-linux-amd64.zip -o /tmp/rclone.zip
 
@@ -15,3 +18,5 @@ chmod +x bin/rclone
 
 # Start the Python app
 python app.py
+
+
