@@ -32,7 +32,6 @@ def start_rclone():
         "./bin/rclone",
         "rcd",
         "--rc-web-gui",
-        "--rc-web-gui-no-open",
         "--rc-addr", f":{APP_PORT}",
         "--rc-user", RCLONE_USER,
         "--rc-pass", RCLONE_PASS,
