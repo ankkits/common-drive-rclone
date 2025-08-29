@@ -10,9 +10,10 @@ TELEGRAM_GROUP_ID = os.environ.get("TELEGRAM_GROUP_ID")
 RCLONE_USER = os.environ.get("RCLONE_USER", "admin")
 RCLONE_PASS = os.environ.get("RCLONE_PASS", "changeme")
 APP_PORT = int(os.environ.get("PORT", "8080"))
-RCLONE_CONFIG = "/tmp/rclone.conf"
+RCLONE_CONFIG_PATH = "/tmp/rclone.conf"
 
-UPLOAD_REMOTE = "gdrive:telegram_uploads"   # change if needed
+# rclone destination (change remote if needed)
+UPLOAD_REMOTE = "gdrive:telegram_uploads"
 
 
 # --- Start rclone WebUI ---
@@ -21,7 +22,7 @@ def start_rclone():
 
     rclone_conf = os.environ.get("RCLONE_CONFIG")
     if rclone_conf:
-        with open(RCLONE_CONFIG, "w") as f:
+        with open(RCLONE_CONFIG_PATH, "w") as f:
             f.write(rclone_conf)
         print("📄 rclone config written to /tmp/rclone.conf")
     else:
@@ -35,14 +36,16 @@ def start_rclone():
         "--rc-user", RCLONE_USER,
         "--rc-pass", RCLONE_PASS,
         "--disable-http2",
-        "--config", RCLONE_CONFIG,
+        "--config", RCLONE_CONFIG_PATH,
     ]
     subprocess.Popen(cmd)
 
 
 # --- Telegram bot handlers ---
 async def start(update, context):
-    await update.message.reply_text("Hello! Bot is running 🚀\nSend me a file and I’ll upload it to Drive.")
+    await update.message.reply_text(
+        "Hello! Bot is running 🚀\nSend me a file and I’ll upload it to Google Drive."
+    )
 
 async def echo(update, context):
     await update.message.reply_text(update.message.text)
@@ -52,7 +55,7 @@ async def handle_file(update, context):
     if update.message.document:
         file = update.message.document
     elif update.message.photo:
-        file = update.message.photo[-1]
+        file = update.message.photo[-1]  # highest resolution
     elif update.message.video:
         file = update.message.video
 
@@ -72,8 +75,8 @@ async def handle_file(update, context):
             "copy",
             tmp_path,
             UPLOAD_REMOTE,
-            "--config", RCLONE_CONFIG,
-            "-v"
+            "--config", RCLONE_CONFIG_PATH,
+            "-v",
         ]
         subprocess.check_call(cmd)
         await update.message.reply_text(f"✅ Uploaded {file_name} to {UPLOAD_REMOTE}")
@@ -96,8 +99,12 @@ def run_bot():
         handle_file
     ))
 
-    # Webhook URL from Render
-    webhook_url = os.environ.get("RENDER_EXTERNAL_URL") + f"/{TELEGRAM_BOT_TOKEN}"
+    # Render provides RENDER_EXTERNAL_URL
+    render_url = os.environ.get("RENDER_EXTERNAL_URL")
+    if not render_url:
+        raise RuntimeError("❌ RENDER_EXTERNAL_URL is missing!")
+
+    webhook_url = render_url.rstrip("/") + f"/{TELEGRAM_BOT_TOKEN}"
 
     print(f"🤖 Setting webhook to {webhook_url} ...")
     app.run_webhook(
