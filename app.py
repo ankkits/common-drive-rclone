@@ -10,7 +10,7 @@ TELEGRAM_GROUP_ID = os.environ.get("TELEGRAM_GROUP_ID")
 RCLONE_USER = os.environ.get("RCLONE_USER", "admin")
 RCLONE_PASS = os.environ.get("RCLONE_PASS", "changeme")
 APP_PORT = int(os.environ.get("PORT", "8080"))
-RCLONE_CONF_PATH = "/tmp/rclone.conf"
+RCLONE_CONFIG = "/tmp/rclone.conf"
 
 UPLOAD_REMOTE = "gdrive:telegram_uploads"   # change if needed
 
@@ -20,13 +20,13 @@ def start_rclone():
     print(f"✅ Starting rclone WebUI on port {APP_PORT} ...")
 
     # Write rclone config from env var
-    rclone_conf = os.environ.get("rclone_dest")
+    rclone_conf = os.environ.get("RCLONE_CONFIG")
     if rclone_conf:
-        with open(RCLONE_CONF_PATH, "w") as f:
+        with open(RCLONE_CONFIG, "w") as f:
             f.write(rclone_conf)
         print("📄 rclone config written to /tmp/rclone.conf")
     else:
-        print("⚠️ No rclone_dest provided, uploads may fail")
+        print("⚠️ No RCLONE_CONFIG provided, uploads may fail")
 
     cmd = [
         "./bin/rclone",
@@ -37,7 +37,7 @@ def start_rclone():
         "--rc-user", RCLONE_USER,
         "--rc-pass", RCLONE_PASS,
         "--disable-http2",
-        "--config", RCLONE_CONF_PATH,
+        "--config", RCLONE_CONFIG,
     ]
     subprocess.Popen(cmd)
 
@@ -76,7 +76,7 @@ async def handle_file(update, context):
             "copy",
             tmp_path,
             UPLOAD_REMOTE,
-            "--config", RCLONE_CONF_PATH,
+            "--config", RCLONE_CONFIG,
             "-v"
         ]
         subprocess.check_call(cmd)
