@@ -12,7 +12,7 @@ RCLONE_PASS = os.environ.get("RCLONE_PASS", "changeme")
 APP_PORT = int(os.environ.get("PORT", "8080"))
 RCLONE_CONFIG_PATH = "/tmp/rclone.conf"
 
-# rclone destination (change remote if needed)
+# rclone destination
 UPLOAD_REMOTE = "gdrive:telegram_uploads"
 
 
@@ -99,7 +99,6 @@ def run_bot():
         handle_file
     ))
 
-    # Render provides RENDER_EXTERNAL_URL
     render_url = os.environ.get("RENDER_EXTERNAL_URL")
     if not render_url:
         raise RuntimeError("❌ RENDER_EXTERNAL_URL is missing!")
