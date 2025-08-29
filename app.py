@@ -14,12 +14,12 @@ APP_PORT = int(os.environ.get("PORT", "8080"))  # Render expects something on PO
 
 # --- Start rclone WebUI ---
 def start_rclone():
-    print(f"✅ Starting rclone WebUI on port {RCLONE_PORT} ...")
+    print(f"✅ Starting rclone WebUI on port {APP_PORT} ...")
     cmd = [
         "./bin/rclone",
         "rcd",
         "--rc-web-gui",
-        "--rc-addr", f":{RCLONE_PORT}",
+        "--rc-addr", f":{APP_PORT}",
         "--rc-user", RCLONE_USER,
         "--rc-pass", RCLONE_PASS,
     ]
