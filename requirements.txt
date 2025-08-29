@@ -1,1 +1,8 @@
+# Telegram bot (webhooks support, modern API v20+)
 python-telegram-bot[webhooks]==20.7
+
+# Needed for async http inside PTB
+httpx==0.27.0  
+
+# Rclone subprocess doesn’t need Python deps, but add utils if needed
+python-dotenv==1.0.1
