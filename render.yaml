@@ -6,6 +6,8 @@ services:
     buildCommand: "pip install --no-cache-dir -r requirements.txt"
     startCommand: "./start.sh"
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_GROUP_ID
