@@ -1,6 +1,5 @@
 import os
 import subprocess
-import asyncio
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
 # --- Environment variables ---
@@ -24,7 +23,7 @@ def start_rclone():
         "--rc-user", RCLONE_USER,
         "--rc-pass", RCLONE_PASS,
     ]
-    subprocess.Popen(cmd)  # background process
+    subprocess.Popen(cmd)  # run in background
 
 
 # --- Telegram bot handlers ---
@@ -35,7 +34,7 @@ async def echo(update, context):
     await update.message.reply_text(update.message.text)
 
 
-async def run_bot():
+def run_bot():
     if not TELEGRAM_BOT_TOKEN:
         print("❌ TELEGRAM_BOT_TOKEN is missing in environment variables!")
         return
@@ -46,17 +45,10 @@ async def run_bot():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     print("🤖 Telegram bot started...")
-    await app.run_polling()
+    app.run_polling()  # ✅ handles asyncio internally (no manual loop)
 
 
 # --- Entry point ---
 if __name__ == "__main__":
     start_rclone()
-
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(run_bot())
-    except RuntimeError:
-        # fallback if loop already running
-        loop.create_task(run_bot())
-        loop.run_forever()
+    run_bot()
