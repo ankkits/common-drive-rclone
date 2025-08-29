@@ -1,18 +1,18 @@
 services:
   - type: web
-    name: rclone-telegram-service
+    name: telegram-rclone-bot
     env: python
-    buildCommand: ""
-    startCommand: bash start.sh
     plan: free
+    buildCommand: "pip install --no-cache-dir -r requirements.txt"
+    startCommand: "python app.py"
     envVars:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_GROUP_ID
         sync: false
+      - key: RCLONE_CONFIG
+        sync: false
       - key: RCLONE_USER
         value: admin
       - key: RCLONE_PASS
         value: changeme
-      - key: rclone_dest
-        sync: false   # put full rclone.conf content here

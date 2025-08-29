@@ -1,7 +1,7 @@
 import os
 import subprocess
 import tempfile
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # --- Environment variables ---
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
@@ -12,8 +12,7 @@ RCLONE_PASS = os.environ.get("RCLONE_PASS", "changeme")
 APP_PORT = int(os.environ.get("PORT", "8080"))
 RCLONE_CONFIG_PATH = "/tmp/rclone.conf"
 
-# rclone destination
-UPLOAD_REMOTE = "gdrive:telegram_uploads"
+UPLOAD_REMOTE = "gdrive:telegram_uploads"   # change if needed
 
 
 # --- Start rclone WebUI ---
@@ -42,20 +41,18 @@ def start_rclone():
 
 
 # --- Telegram bot handlers ---
-async def start(update, context):
-    await update.message.reply_text(
-        "Hello! Bot is running 🚀\nSend me a file and I’ll upload it to Google Drive."
-    )
+def start(update, context):
+    update.message.reply_text("Hello! Bot is running 🚀\nSend me a file and I’ll upload it to Drive.")
 
-async def echo(update, context):
-    await update.message.reply_text(update.message.text)
+def echo(update, context):
+    update.message.reply_text(update.message.text)
 
-async def handle_file(update, context):
+def handle_file(update, context):
     file = None
     if update.message.document:
         file = update.message.document
     elif update.message.photo:
-        file = update.message.photo[-1]  # highest resolution
+        file = update.message.photo[-1]
     elif update.message.video:
         file = update.message.video
 
@@ -65,9 +62,9 @@ async def handle_file(update, context):
     file_id = file.file_id
     file_name = getattr(file, "file_name", f"{file_id}.bin")
 
-    tg_file = await context.bot.get_file(file_id)
+    tg_file = context.bot.get_file(file_id)
     tmp_path = os.path.join(tempfile.gettempdir(), file_name)
-    await tg_file.download_to_drive(tmp_path)
+    tg_file.download(tmp_path)
 
     try:
         cmd = [
@@ -76,12 +73,12 @@ async def handle_file(update, context):
             tmp_path,
             UPLOAD_REMOTE,
             "--config", RCLONE_CONFIG_PATH,
-            "-v",
+            "-v"
         ]
         subprocess.check_call(cmd)
-        await update.message.reply_text(f"✅ Uploaded {file_name} to {UPLOAD_REMOTE}")
+        update.message.reply_text(f"✅ Uploaded {file_name} to {UPLOAD_REMOTE}")
     except subprocess.CalledProcessError as e:
-        await update.message.reply_text(f"❌ Upload failed: {e}")
+        update.message.reply_text(f"❌ Upload failed: {e}")
 
 
 # --- Entry point ---
@@ -90,27 +87,16 @@ def run_bot():
         print("❌ TELEGRAM_BOT_TOKEN is missing!")
         return
 
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
+    dp = updater.dispatcher
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
-    app.add_handler(MessageHandler(
-        filters.Document.ALL | filters.PHOTO | filters.VIDEO,
-        handle_file
-    ))
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+    dp.add_handler(MessageHandler(Filters.document | Filters.photo | Filters.video, handle_file))
 
-    render_url = os.environ.get("RENDER_EXTERNAL_URL")
-    if not render_url:
-        raise RuntimeError("❌ RENDER_EXTERNAL_URL is missing!")
-
-    webhook_url = render_url.rstrip("/") + f"/{TELEGRAM_BOT_TOKEN}"
-
-    print(f"🤖 Setting webhook to {webhook_url} ...")
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=APP_PORT,
-        webhook_url=webhook_url
-    )
+    print("🤖 Bot is starting with polling ...")
+    updater.start_polling()
+    updater.idle()
 
 
 if __name__ == "__main__":
