@@ -4,12 +4,13 @@ FROM alpine:latest
 # Install dependencies
 RUN apk add --no-cache curl unzip ca-certificates
 
-# Install rclone with better error handling
-RUN curl -L https://downloads.rclone.org/rclone-current-linux-amd64.zip -o rclone.zip \
+# Install rclone with proper path handling
+RUN curl -L https://downloads.rclone.org/rclone-current-linux-amd64.zip -o /tmp/rclone.zip \
+    && cd /tmp \
     && unzip rclone.zip \
-    && find . -name "rclone" -type f -executable | head -1 | xargs -I {} cp {} /usr/bin/rclone \
+    && cp rclone-*/rclone /usr/bin/rclone \
     && chmod +x /usr/bin/rclone \
-    && rm -rf rclone* \
+    && rm -rf /tmp/rclone* \
     && rclone version
 
 # Create rclone config directory
