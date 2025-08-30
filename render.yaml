@@ -1,17 +1,17 @@
 services:
   - type: web
-    name: rclone-service
+    name: rclone-webui
     env: docker
-    plan: free
     dockerfilePath: ./Dockerfile
-    ports:
-      - containerPort: 10000
-        protocol: tcp
+    region: oregon
+    plan: free
+    autoDeploy: true
+    # Environment variables - Set these in Render dashboard
     envVars:
-      - key: RCLONE_USER
-        value: aa
-      - key: RCLONE_PASS
-        value: aa
       - key: RCLONE_CONFIG
-        value: "<your rclone config>"
-    healthCheckPath: /rc/noop
+        sync: false  # Don't sync from repo, set manually in dashboard
+      - key: RC_USER
+        sync: false  # Set your desired username
+      - key: RC_PASS
+        sync: false  # Set your desired password
+    healthCheckPath: /
