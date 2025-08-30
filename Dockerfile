@@ -1,19 +1,16 @@
 # Use Alpine Linux for smaller image size
 FROM alpine:latest
 
-# Install rclone and dependencies
-RUN apk add --no-cache \
-    curl \
-    unzip \
-    ca-certificates \
-    && curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip \
-    && unzip rclone-current-linux-amd64.zip \
-    && cd rclone-*-linux-amd64 \
-    && cp rclone /usr/bin/ \
+# Install dependencies
+RUN apk add --no-cache curl unzip ca-certificates
+
+# Install rclone with better error handling
+RUN curl -L https://downloads.rclone.org/rclone-current-linux-amd64.zip -o rclone.zip \
+    && unzip rclone.zip \
+    && find . -name "rclone" -type f -executable | head -1 | xargs -I {} cp {} /usr/bin/rclone \
     && chmod +x /usr/bin/rclone \
-    && cd .. \
-    && rm -rf rclone-* \
-    && rm rclone-current-linux-amd64.zip
+    && rm -rf rclone* \
+    && rclone version
 
 # Create rclone config directory
 RUN mkdir -p /root/.config/rclone
