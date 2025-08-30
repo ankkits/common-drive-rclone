@@ -5,10 +5,10 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     envVars:
-      - key: RCLONE_CONFIG
-        sync: false   # base64 encoded rclone.conf
+      - key: RCLONE_CONFIG        # base64 or plain text, multiline allowed
+        sync: false
       - key: RCLONE_USER
-        sync: false   # your username
+        sync: false
       - key: RCLONE_PASS
-        sync: false   # your password
+        sync: false
     healthCheckPath: /rc/noop
