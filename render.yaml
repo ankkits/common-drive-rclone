@@ -4,11 +4,14 @@ services:
     env: docker
     plan: free
     dockerfilePath: ./Dockerfile
+    ports:
+      - containerPort: 10000
+        protocol: tcp
     envVars:
-      - key: RCLONE_CONFIG
-        sync: false   # put your base64 config here
       - key: RCLONE_USER
-        sync: false   # e.g. "aa"
+        value: aa
       - key: RCLONE_PASS
-        sync: false   # e.g. "aa"
+        value: aa
+      - key: RCLONE_CONFIG
+        value: "<your rclone config>"
     healthCheckPath: /rc/noop
