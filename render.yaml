@@ -6,9 +6,9 @@ services:
     dockerfilePath: ./Dockerfile
     envVars:
       - key: RCLONE_CONFIG
-        sync: false   # Base64 encoded config
+        sync: false   # put your base64 config here
       - key: RCLONE_USER
-        sync: false   # WebUI username
+        sync: false   # e.g. "aa"
       - key: RCLONE_PASS
-        sync: false   # WebUI password
+        sync: false   # e.g. "aa"
     healthCheckPath: /rc/noop

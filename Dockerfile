@@ -1,8 +1,16 @@
-# Use lightweight rclone base image
-FROM rclone/rclone:latest
+# Start from Alpine
+FROM alpine:3.19
 
-# Install bash
-RUN apk add --no-cache bash
+# Install bash, curl, unzip, ca-certificates
+RUN apk add --no-cache bash curl unzip ca-certificates
+
+# Install rclone manually
+RUN curl -fsSL https://downloads.rclone.org/rclone-current-linux-amd64.zip -o rclone.zip \
+    && unzip rclone.zip \
+    && cd rclone-*-linux-amd64 \
+    && cp rclone /usr/bin/ \
+    && cd .. \
+    && rm -rf rclone.zip rclone-*-linux-amd64
 
 # Create app directory
 WORKDIR /app
@@ -11,8 +19,8 @@ WORKDIR /app
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-# Expose Render PORT
+# Expose default port
 EXPOSE 10000
 
-# Override the rclone default entrypoint
+# Run our script directly
 ENTRYPOINT ["/app/entrypoint.sh"]

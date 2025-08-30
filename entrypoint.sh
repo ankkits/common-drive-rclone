@@ -4,7 +4,7 @@ set -e
 # Ensure PORT from Render (default 10000)
 PORT=${PORT:-10000}
 
-# If RCLONE_CONFIG exists in env, write it to /app/rclone.conf
+# If RCLONE_CONFIG exists in env, decode to file
 if [ -n "$RCLONE_CONFIG" ]; then
   echo "$RCLONE_CONFIG" | base64 -d > /app/rclone.conf
   export RCLONE_CONFIG=/app/rclone.conf
