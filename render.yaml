@@ -1,20 +1,15 @@
 services:
   - type: web
-    name: telegram-rclone-bot
-    env: python
+    name: rclone-web
+    env: docker
     plan: free
-    buildCommand: "pip install --no-cache-dir -r requirements.txt"
-    startCommand: "./start.sh"
+    autoDeploy: true
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.7
-      - key: TELEGRAM_BOT_TOKEN
-        sync: false
-      - key: TELEGRAM_GROUP_ID
-        sync: false
       - key: RCLONE_CONFIG
-        sync: false
+        sync: false   # stored securely in Render dashboard
       - key: RCLONE_USER
-        value: admin
+        sync: false
       - key: RCLONE_PASS
-        value: changeme
+        sync: false
+    healthCheckPath: /
+    port: 10000
