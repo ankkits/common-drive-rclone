@@ -5,10 +5,10 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     envVars:
-      - key: RCLONE_CONFIG        # base64 or plain text, multiline allowed
-        sync: false
+      - key: RCLONE_CONFIG
+        sync: false   # Base64 encoded config
       - key: RCLONE_USER
-        sync: false
+        sync: false   # WebUI username
       - key: RCLONE_PASS
-        sync: false
+        sync: false   # WebUI password
     healthCheckPath: /rc/noop

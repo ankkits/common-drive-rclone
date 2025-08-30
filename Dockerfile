@@ -1,13 +1,17 @@
+# Use lightweight rclone base image
 FROM rclone/rclone:latest
 
-# Small utilities
-RUN apk add --no-cache bash coreutils && mkdir -p /app
+# Install bash (needed for entrypoint script)
+RUN apk add --no-cache bash
+
+# Create app directory
+WORKDIR /app
 
 # Copy entrypoint
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-# Render will inject $PORT; EXPOSE is informational
+# Expose Render PORT
 EXPOSE 10000
 
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/app/entrypoint.sh"]
