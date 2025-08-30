@@ -1,7 +1,7 @@
 # Use lightweight rclone base image
 FROM rclone/rclone:latest
 
-# Install bash (needed for entrypoint script)
+# Install bash
 RUN apk add --no-cache bash
 
 # Create app directory
@@ -14,4 +14,5 @@ RUN chmod +x /app/entrypoint.sh
 # Expose Render PORT
 EXPOSE 10000
 
-CMD ["/app/entrypoint.sh"]
+# Override the rclone default entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]
