@@ -1,17 +1,14 @@
-FROM alpine:3.20
+# Use Alpine for small image
+FROM rclone/rclone:latest
 
-# Install tools
-RUN apk add --no-cache curl unzip bash
+# Install bash and coreutils for decoding
+RUN apk add --no-cache bash coreutils
 
-# Install rclone
-RUN curl https://rclone.org/install.sh | bash
-
-# Copy entrypoint script
+# Copy entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Expose RC / Web UI port
+# Expose Render port (Render sets $PORT automatically)
 EXPOSE 10000
 
-# Run entrypoint script
-CMD ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]

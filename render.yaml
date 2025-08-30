@@ -1,15 +1,14 @@
 services:
   - type: web
-    name: rclone-web
+    name: rclone-service
     env: docker
     plan: free
-    autoDeploy: true
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: RCLONE_CONFIG
-        sync: false   # stored securely in Render dashboard
+        sync: false   # base64 encoded rclone.conf
       - key: RCLONE_USER
-        sync: false
+        sync: false   # your username
       - key: RCLONE_PASS
-        sync: false
-    healthCheckPath: /
-    port: 10000
+        sync: false   # your password
+    healthCheckPath: /rc/noop
